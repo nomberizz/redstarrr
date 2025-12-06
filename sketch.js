@@ -4,7 +4,7 @@ let targetColor;
 // ⭐ 색상 인식 복구: threshold를 250으로 충분히 높여서 텍스트가 뜨도록 보장
 let threshold = 250;    
 // 성능 최적화: checkCellSize는 40으로 유지
-let checkCellSize = 40; 
+let checkCellSize = 20; 
 let textStep = 10;        
 let mosaicText = "*";   
 
