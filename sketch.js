@@ -1,11 +1,15 @@
-// --- 전역 변수 설정 (최적화 설정 유지) ---
+// --- 전역 변수 설정 ---
 let cam;              
 let targetColor;      
 let threshold = 170;    
-let checkCellSize = 80; // 성능 최적화 (80 유지)
-let textStep = 30;      // 성능 최적화 (30 유지)  
+
+// ⭐ 성능 최적화: 격자 크기는 80으로 유지
+let checkCellSize = 80; 
+// ⭐ 시각적 개선: 텍스트 출력 간격을 30 -> 20으로 줄여 밀도 증가
+let textStep = 20;        
 let mosaicText = "*";   
 
+// --- 잔상 효과를 위한 변수 ---
 let presenceBuffer; 
 let numCols;        
 let numRows;        
@@ -14,15 +18,16 @@ let maxPresence = 255.0;
 let growRate = 60.0;    
 let fadeRate = 40.0;    
 
-const CAM_WIDTH = 320; // 해상도 최적화 유지
-const CAM_HEIGHT = 240; // 해상도 최적화 유지
+// 성능 최적화: 해상도를 320x240으로 유지
+const CAM_WIDTH = 320; 
+const CAM_HEIGHT = 240; 
 
 // ----------------------------------------------------
 // 1. 초기 설정 (setup)
 // ----------------------------------------------------
 function setup() {
   createCanvas(CAM_WIDTH, CAM_HEIGHT); 
-  frameRate(10); // 프레임 속도 최적화 유지
+  frameRate(10); 
 
   targetColor = color(255, 0, 0); 
   
@@ -48,7 +53,8 @@ function setup() {
   cam.hide(); 
   
   textAlign(CENTER, CENTER);
-  textSize(25);
+  // ⭐ 시각적 개선: 텍스트 크기를 25 -> 15로 줄여 별 크기 감소
+  textSize(15); 
 }
 
 // ----------------------------------------------------
@@ -61,8 +67,7 @@ function draw() {
   if (cam && cam.loadedmetadata) {
     cam.loadPixels();
     
-    // --- Phase 1 & 2 (잔상 업데이트 및 색상 검출 로직 유지) ---
-    // (성능에 영향을 주지 않는 잔상 버퍼 업데이트와 색상 검출 루프는 그대로 유지)
+    // --- Phase 1 & 2 (잔상 업데이트 및 색상 검출) ---
     for (let i = 0; i < numCols; i++) {
       for (let j = 0; j < numRows; j++) {
         presenceBuffer[i][j] -= fadeRate; 
@@ -89,7 +94,7 @@ function draw() {
     }
 
     // --------------------------------------------------
-    // 2. 웹캠 이미지 출력 (흑백 필터 재적용)
+    // 2. 웹캠 이미지 출력 (흑백 필터와 좌우 반전 적용)
     // --------------------------------------------------
     
     push();
@@ -97,12 +102,13 @@ function draw() {
     scale(-1, 1);
     
     image(cam, 0, 0, width, height); 
-    // ⭐⭐ 흑백 필터 재활성화 ⭐⭐
-    filter(GRAY); 
+    filter(GRAY); // 흑백 필터 유지
               
     pop();
 
-    // --- Phase 3 (텍스트 그리기 로직 유지) ---
+    // --------------------------------------------------
+    // Phase 3: 잔상 버퍼 값에 비례하여 텍스트 그리기
+    // --------------------------------------------------
     noStroke();
     
     for (let x = 0; x < width; x += textStep) {
