@@ -1,12 +1,13 @@
 // --- 전역 변수 설정 ---
 let cam;              
 let targetColor;      
-let threshold = 170;    
 
-// ⭐ 성능 최적화: 격자 크기는 80으로 유지
+// ⭐ 색상 정확도 개선: 임계값을 100으로 낮춰 더 정확한 빨간색만 추적
+let threshold = 100;    
+// 성능 최적화: 격자 크기는 80으로 유지
 let checkCellSize = 80; 
-// ⭐ 시각적 개선: 텍스트 출력 간격을 30 -> 20으로 줄여 밀도 증가
-let textStep = 20;        
+// ⭐ 밀도 개선: 텍스트 출력 간격을 10으로 줄여 촘촘하게 만듭니다.
+let textStep = 10;        
 let mosaicText = "*";   
 
 // --- 잔상 효과를 위한 변수 ---
@@ -27,7 +28,7 @@ const CAM_HEIGHT = 240;
 // ----------------------------------------------------
 function setup() {
   createCanvas(CAM_WIDTH, CAM_HEIGHT); 
-  frameRate(10); 
+  frameRate(10); // 성능 최적화
 
   targetColor = color(255, 0, 0); 
   
@@ -39,12 +40,13 @@ function setup() {
     presenceBuffer[i] = new Array(numRows).fill(0);
   }
 
-  // 웹캠 설정: 해상도와 비율(4:3)을 모두 강제 요청합니다.
+  // 웹캠 설정: 해상도와 비율(4:3)을 강제 요청하여 왜곡을 방지합니다.
   cam = createCapture({
     video: {
       width: { exact: CAM_WIDTH }, 
       height: { exact: CAM_HEIGHT },
-      aspectRatio: { exact: CAM_WIDTH / CAM_HEIGHT } 
+      // 비율 왜곡 해결 핵심: min/max 비율을 모두 4/3으로 강제 설정
+      aspectRatio: { min: CAM_WIDTH / CAM_HEIGHT, max: CAM_WIDTH / CAM_HEIGHT } 
     }, 
     audio: false 
   });
@@ -53,8 +55,8 @@ function setup() {
   cam.hide(); 
   
   textAlign(CENTER, CENTER);
-  // ⭐ 시각적 개선: 텍스트 크기를 25 -> 15로 줄여 별 크기 감소
-  textSize(15); 
+  // ⭐ 텍스트 크기를 25로 유지
+  textSize(25); 
 }
 
 // ----------------------------------------------------
@@ -67,7 +69,7 @@ function draw() {
   if (cam && cam.loadedmetadata) {
     cam.loadPixels();
     
-    // --- Phase 1 & 2 (잔상 업데이트 및 색상 검출) ---
+    // --- Phase 1: 잔상 버퍼 업데이트 (감쇠) ---
     for (let i = 0; i < numCols; i++) {
       for (let j = 0; j < numRows; j++) {
         presenceBuffer[i][j] -= fadeRate; 
@@ -75,6 +77,7 @@ function draw() {
       }
     }
 
+    // --- Phase 2: 색상 검출 및 생명력 증가 ---
     for (let x = 0; x < width; x += checkCellSize) {
       for (let y = 0; y < height; y += checkCellSize) {
         
@@ -86,7 +89,7 @@ function draw() {
         let d = dist(red(pixelColor), green(pixelColor), blue(pixelColor), 
                      red(targetColor), green(targetColor), blue(targetColor));
         
-        if (d < threshold) {
+        if (d < threshold) { // 임계값(100)보다 작으면 생명력 증가
           presenceBuffer[i][j] += growRate;
           presenceBuffer[i][j] = min(maxPresence, presenceBuffer[i][j]);
         }
@@ -102,7 +105,7 @@ function draw() {
     scale(-1, 1);
     
     image(cam, 0, 0, width, height); 
-    filter(GRAY); // 흑백 필터 유지
+    filter(GRAY); // 흑백 필터 적용
               
     pop();
 
@@ -128,6 +131,7 @@ function draw() {
           let drawX = width - x; 
           let drawY = y;
           
+          // 떨림 효과 (textStep이 10이므로 떨림 폭도 좁아집니다)
           let jitterX = random(-textStep * 0.5, textStep * 0.5);
           let jitterY = random(-textStep * 0.5, textStep * 0.5);
 
