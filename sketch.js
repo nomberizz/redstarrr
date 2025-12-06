@@ -6,7 +6,7 @@ let targetColor;
 let threshold = 170;    
 
 // ⭐⭐ 최종 수정: 색상 검출 격자를 80 -> 40으로 줄여 모양 정확도 개선 ⭐⭐
-let checkCellSize = 40; 
+let checkCellSize = 30; 
 // 밀도 개선: 텍스트 출력 간격을 10으로 유지
 let textStep = 10;        
 let mosaicText = "*";   
