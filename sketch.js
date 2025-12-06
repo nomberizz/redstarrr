@@ -1,21 +1,19 @@
 // --- 전역 변수 설정 ---
-let cam;              // 웹캠 객체
-let targetColor;      // 추적할 색상 (빨간색)
-let threshold = 170;    // 색상 유사도 임계값 (원래 값 유지)
-let checkCellSize = 20; // 색상 검출 격자 크기 (원래 값 유지)
-let textStep = 10;        // 텍스트 출력 간격 (원래 값 유지)
-let mosaicText = "*";   // 모자이크에 사용할 텍스트
+let cam;              
+let targetColor;      
+let threshold = 170;    
+// ⭐⭐ 최종 타협: checkCellSize를 25로 설정 (768회 -> 491회로 감소) ⭐⭐
+let checkCellSize = 25; 
+let textStep = 10;        
+let mosaicText = "*";   
 
 // --- 잔상 효과를 위한 변수 ---
 let presenceBuffer; 
 let numCols;        
 let numRows;        
-
 let maxPresence = 255.0; 
 let growRate = 60.0;    
 let fadeRate = 40.0;    
-
-// ⭐ 해상도: 원래대로 640x480 유지
 const CAM_WIDTH = 640;
 const CAM_HEIGHT = 480;
 
@@ -24,10 +22,12 @@ const CAM_HEIGHT = 480;
 // ----------------------------------------------------
 function setup() {
   createCanvas(CAM_WIDTH, CAM_HEIGHT); 
-  frameRate(15); // 원래 값 유지
+  // frameRate를 10으로 낮춰 CPU 부담 감소
+  frameRate(10); 
 
-  targetColor = color(255, 0, 0); // 원래 값 유지
+  targetColor = color(255, 0, 0); 
   
+  // checkCellSize(25) 기준으로 격자 재계산
   numCols = ceil(width / checkCellSize);
   numRows = ceil(height / checkCellSize);
   
@@ -36,12 +36,11 @@ function setup() {
     presenceBuffer[i] = new Array(numRows).fill(0);
   }
 
-  // ⭐ 핵심: 640x480 해상도와 4:3 비율을 강제 요청하여 왜곡을 방지
+  // 웹캠 설정: 해상도와 비율(4:3) 강제 요청 (왜곡 방지)
   cam = createCapture({
     video: {
       width: { exact: CAM_WIDTH }, 
       height: { exact: CAM_HEIGHT },
-      // 비율 왜곡 방지 옵션 추가
       aspectRatio: { min: CAM_WIDTH / CAM_HEIGHT, max: CAM_WIDTH / CAM_HEIGHT } 
     }, 
     audio: false 
@@ -51,7 +50,7 @@ function setup() {
   cam.hide(); 
   
   textAlign(CENTER, CENTER);
-  textSize(25); // 원래 값 유지
+  textSize(25); 
 }
 
 // ----------------------------------------------------
@@ -75,7 +74,7 @@ function draw() {
     }
 
     // --------------------------------------------------
-    // Phase 2: 색상 검출 및 생명력 증가
+    // Phase 2: 색상 검출 및 생명력 증가 (checkCellSize=25, cam.pixels 접근)
     // --------------------------------------------------
     for (let x = 0; x < width; x += checkCellSize) {
       for (let y = 0; y < height; y += checkCellSize) {
@@ -83,9 +82,14 @@ function draw() {
         let i = floor(x / checkCellSize); 
         let j = floor(y / checkCellSize); 
         
-        let pixelColor = cam.get(x + checkCellSize/2, y + checkCellSize/2);
+        // cam.pixels 배열 인덱스를 계산하여 R, G, B 값을 직접 읽음 (빠른 연산)
+        let pixelIndex = 4 * ( (y + checkCellSize/2) * width + (x + checkCellSize/2) );
         
-        let d = dist(red(pixelColor), green(pixelColor), blue(pixelColor), 
+        let r_pixel = cam.pixels[pixelIndex];
+        let g_pixel = cam.pixels[pixelIndex + 1];
+        let b_pixel = cam.pixels[pixelIndex + 2];
+        
+        let d = dist(r_pixel, g_pixel, b_pixel, 
                      red(targetColor), green(targetColor), blue(targetColor));
         
         if (d < threshold) {
@@ -109,7 +113,7 @@ function draw() {
     pop();
 
     // --------------------------------------------------
-    // Phase 3: 잔상 버퍼 값에 비례하여 텍스트 그리기
+    // Phase 3: 잔상 버퍼 값에 비례하여 텍스트 그리기 (textStep=10)
     // --------------------------------------------------
     noStroke();
     
