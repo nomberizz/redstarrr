@@ -12,12 +12,11 @@
     <style>
         body {
             margin: 0;
-            /* Flexbox를 사용하여 캔버스를 화면 중앙으로 정렬합니다. */
             display: flex;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
-            background-color: #222; /* 주변 여백 색상 */
+            background-color: #222; 
         }
         canvas {
             display: block;
@@ -27,10 +26,9 @@
             max-width: 100vw;
             max-height: 100vh;
             
-            /* 핵심: 비율을 유지하며 최대 크기로 조정 */
-            object-fit: contain; 
+            /* 핵심: 비율을 4:3으로 강제 고정하여 왜곡 방지 */
+            aspect-ratio: 4 / 3; 
             
-            /* 브라우저가 크기를 조절할 수 있도록 설정 */
             width: auto; 
             height: auto;
         }
