@@ -2,11 +2,12 @@
 let cam;              
 let targetColor;      
 
-// ⭐ 색상 정확도 개선: 임계값을 100으로 낮춰 더 정확한 빨간색만 추적
+// 색상 정확도 유지
 let threshold = 100;    
-// 성능 최적화: 격자 크기는 80으로 유지
-let checkCellSize = 80; 
-// ⭐ 밀도 개선: 텍스트 출력 간격을 10으로 줄여 촘촘하게 만듭니다.
+
+// ⭐⭐ 최종 수정: 색상 검출 격자를 80 -> 40으로 줄여 모양 정확도 개선 ⭐⭐
+let checkCellSize = 40; 
+// 밀도 개선: 텍스트 출력 간격을 10으로 유지
 let textStep = 10;        
 let mosaicText = "*";   
 
@@ -28,10 +29,11 @@ const CAM_HEIGHT = 240;
 // ----------------------------------------------------
 function setup() {
   createCanvas(CAM_WIDTH, CAM_HEIGHT); 
-  frameRate(10); // 성능 최적화
+  frameRate(10); 
 
   targetColor = color(255, 0, 0); 
   
+  // 변경된 checkCellSize(40) 기준으로 격자 재계산
   numCols = ceil(width / checkCellSize);
   numRows = ceil(height / checkCellSize);
   
@@ -45,7 +47,7 @@ function setup() {
     video: {
       width: { exact: CAM_WIDTH }, 
       height: { exact: CAM_HEIGHT },
-      // 비율 왜곡 해결 핵심: min/max 비율을 모두 4/3으로 강제 설정
+      // 비율 왜곡 방지 옵션 유지
       aspectRatio: { min: CAM_WIDTH / CAM_HEIGHT, max: CAM_WIDTH / CAM_HEIGHT } 
     }, 
     audio: false 
@@ -55,8 +57,7 @@ function setup() {
   cam.hide(); 
   
   textAlign(CENTER, CENTER);
-  // ⭐ 텍스트 크기를 25로 유지
-  textSize(25); 
+  textSize(25); // 텍스트 크기 25 유지
 }
 
 // ----------------------------------------------------
@@ -77,7 +78,7 @@ function draw() {
       }
     }
 
-    // --- Phase 2: 색상 검출 및 생명력 증가 ---
+    // --- Phase 2: 색상 검출 및 생명력 증가 (checkCellSize=40으로 정밀 검출) ---
     for (let x = 0; x < width; x += checkCellSize) {
       for (let y = 0; y < height; y += checkCellSize) {
         
@@ -105,18 +106,19 @@ function draw() {
     scale(-1, 1);
     
     image(cam, 0, 0, width, height); 
-    filter(GRAY); // 흑백 필터 적용
+    filter(GRAY); 
               
     pop();
 
     // --------------------------------------------------
-    // Phase 3: 잔상 버퍼 값에 비례하여 텍스트 그리기
+    // Phase 3: 잔상 버퍼 값에 비례하여 텍스트 그리기 (textStep=10으로 촘촘하게)
     // --------------------------------------------------
     noStroke();
     
     for (let x = 0; x < width; x += textStep) {
       for (let y = 0; y < height; y += textStep) {
         
+        // 격자 인덱스는 checkCellSize(40) 기준으로 계산
         let i = floor(x / checkCellSize);
         let j = floor(y / checkCellSize);
 
@@ -124,14 +126,13 @@ function draw() {
 
         let currentPresence = presenceBuffer[i][j];
         
-        if (currentPresence > 0) {
+        if (currentPresence > 0) { // 활성화된 40x40 영역에만 텍스트 생성
           
           fill(255, 0, 0, currentPresence);
           
           let drawX = width - x; 
           let drawY = y;
           
-          // 떨림 효과 (textStep이 10이므로 떨림 폭도 좁아집니다)
           let jitterX = random(-textStep * 0.5, textStep * 0.5);
           let jitterY = random(-textStep * 0.5, textStep * 0.5);
 
