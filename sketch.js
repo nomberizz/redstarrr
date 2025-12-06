@@ -31,7 +31,7 @@ function setup() {
   createCanvas(CAM_WIDTH, CAM_HEIGHT); 
   frameRate(10); 
 
-  targetColor = color(255, 0, 0); 
+  targetColor = color(230, 30, 30); 
   
   // 변경된 checkCellSize(40) 기준으로 격자 재계산
   numCols = ceil(width / checkCellSize);
