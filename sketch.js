@@ -3,7 +3,7 @@ let cam;
 let targetColor;      
 
 // 색상 정확도 유지
-let threshold = 190;    
+let threshold = 145;    
 
 // ⭐⭐ 최종 수정: 색상 검출 격자를 80 -> 40으로 줄여 모양 정확도 개선 ⭐⭐
 let checkCellSize = 30; 
